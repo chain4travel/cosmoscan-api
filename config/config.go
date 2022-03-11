@@ -22,6 +22,7 @@ type (
 		CMCKey                string     `json:"cmc_key"`
 	}
 	Parser struct {
+                Genesis  string `json:"genesis"`
 		Node     string `json:"node"`
 		Batch    uint64 `json:"batch"`
 		Fetchers uint64 `json:"fetchers"`

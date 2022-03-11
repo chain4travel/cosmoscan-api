@@ -7,18 +7,20 @@ import (
 	"github.com/shopspring/decimal"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
-const genesisJson = "https://raw.githubusercontent.com/cosmos/launch/master/genesis.json"
 const saveGenesisBatch = 100
 
 type Genesis struct {
 	AppState struct {
-		Accounts []struct {
+		Bank struct{
+		Balances []struct {
 			Address string   `json:"address"`
 			Coins   []Amount `json:"coins"`
-		} `json:"accounts"`
+		} `json:"balances"`
+                } `json:"bank"`
 		Distribution struct {
 			DelegatorStartingInfos []struct {
 				StartingInfo struct {
@@ -54,14 +56,10 @@ type Genesis struct {
 	} `json:"validators"`
 }
 
-func GetGenesisState() (state Genesis, err error) {
-	resp, err := http.Get(genesisJson)
+func GetGenesisState(genesisJson string) (state Genesis, err error) {
+	data, err := getGenesisJson(genesisJson)
 	if err != nil {
-		return state, fmt.Errorf("http.Get: %s", err.Error())
-	}
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return state, fmt.Errorf("ioutil.ReadAll: %s", err.Error())
+		return state, fmt.Errorf("getGenesisJson: %s", err.Error())
 	}
 	err = json.Unmarshal(data, &state)
 	if err != nil {
@@ -71,9 +69,8 @@ func GetGenesisState() (state Genesis, err error) {
 	return state, nil
 }
 
-func ShowGenesisStructure() {
-	resp, _ := http.Get(genesisJson)
-	data, _ := ioutil.ReadAll(resp.Body)
+func ShowGenesisStructure(genesisJson string) {
+	data, _ := getGenesisJson(genesisJson)
 	var value interface{}
 	_ = json.Unmarshal(data, &value)
 	printStruct(value, 0)
@@ -96,8 +93,21 @@ func printStruct(field interface{}, i int) {
 	}
 }
 
+func getGenesisJson(genesisJson string) ([]byte, error) {
+	if strings.HasPrefix(genesisJson, "file://") {
+		return ioutil.ReadFile(genesisJson[7:])
+	} else {
+		resp, err := http.Get(genesisJson)
+		if err == nil {
+			return ioutil.ReadAll(resp.Body)
+		}
+		return nil, fmt.Errorf("http.Get: %s", err.Error())
+	}
+}
+
+
 func (p *Parser) parseGenesisState() error {
-	state, err := GetGenesisState()
+	state, err := GetGenesisState(p.cfg.Parser.Genesis)
 	if err != nil {
 		return fmt.Errorf("getGenesisState: %s", err.Error())
 	}
@@ -138,7 +148,7 @@ func (p *Parser) parseGenesisState() error {
 	for _, delegation := range delegations {
 		accountDelegation[delegation.Delegator] = accountDelegation[delegation.Delegator].Add(delegation.Amount)
 	}
-	for _, account := range state.AppState.Accounts {
+	for _, account := range state.AppState.Bank.Balances {
 		amount, _ := calculateAtomAmount(account.Coins)
 		accounts = append(accounts, dmodels.Account{
 			Address:   account.Address,

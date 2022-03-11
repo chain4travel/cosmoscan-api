@@ -21,6 +21,7 @@
     "database": "cosmoshub3"
   },
   "parser": {
+    "genesis": "https://raw.githubusercontent.com/cosmos/launch/master/genesis.json",
     "node": "https://api.cosmos.network",
     "batch": 500,
     "fetchers": 5

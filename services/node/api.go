@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	precision = 6
+	precision = 18
 
 	DepositPeriodProposalStatus = "PROPOSAL_STATUS_DEPOSIT_PERIOD"
 	VotingPeriodProposalStatus  = "PROPOSAL_STATUS_VOTING_PERIOD"
@@ -19,7 +19,7 @@ const (
 	RejectedProposalStatus      = "PROPOSAL_STATUS_REJECTED"
 	FailedProposalStatus        = "PROPOSAL_STATUS_FAILED"
 
-	MainUnit = "uatom"
+	MainUnit = "CAM"
 )
 
 var PrecisionDiv = decimal.New(1, precision)
@@ -44,7 +44,7 @@ type (
 			Type string `json:"@type"`
 			Key  string `json:"key"`
 		} `json:"consensus_pubkey"`
-		Tokens          uint64          `json:"tokens,string"`
+		Tokens string `json:"tokens"`
 		DelegatorShares decimal.Decimal `json:"delegator_shares"`
 		Description     struct {
 			Moniker  string `json:"moniker"`
